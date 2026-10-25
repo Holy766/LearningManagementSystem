@@ -203,6 +203,7 @@ int main() {
 
         do {
             cout << "\n===== Learning Management System =====\n";
+            
             cout << "1. Login\n";
             cout << "0. Exit\nChoice: ";
 
