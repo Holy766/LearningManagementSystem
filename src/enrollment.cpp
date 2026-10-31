@@ -2,8 +2,7 @@
 #include "enrollment.h"
 
 Enrollment::Enrollment(EnrollmentId id, UserId studentId,
-                       CourseId courseId, Datetime enrolledAt)
-    : id(id),
+                       CourseId courseId, const Datetime& enrolledAt): id(id),
       studentId(studentId),
       courseId(courseId),
       enrolledAt(enrolledAt) {

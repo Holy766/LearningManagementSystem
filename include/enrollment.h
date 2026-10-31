@@ -17,7 +17,7 @@ private:
 
 public:
     Enrollment(EnrollmentId id, UserId studentId,
-               CourseId courseId, Datetime enrolledAt);
+               CourseId courseId, const Datetime& enrolledAt);
 
     EnrollmentId getId() const;
     UserId getStudentId() const;
