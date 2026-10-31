@@ -1,7 +1,7 @@
 
 #include "department.h"
 
-Department::Department(DepartmentId id, string name, UserId hodId): id(id), name(name), hodId(hodId) {
+Department::Department(DepartmentId id,const string& name, UserId hodId): id(id), name(name), hodId(hodId) {
 }
 
 // Getters
@@ -20,7 +20,7 @@ UserId Department::getHodId() const {
 
 // Setters
 
-void Department::setName(string name) {
+void Department::setName(const string& name) {
     this->name = name;
 }
 

@@ -15,13 +15,13 @@ private:
     UserId hodId;  // Identifies the Head of Department
 
 public:
-    Department(DepartmentId id, string name, UserId hodId);
+    Department(DepartmentId id, const string& name, UserId hodId);
 
     DepartmentId getId() const;
     string getName() const;
     UserId getHodId() const;
 
-    void setName(string name);
+    void setName(const string& name);
     void setHodId(UserId hodId);
 };
 
