@@ -28,3 +28,10 @@ jobs:
 
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
+        
+      - name: Install Cppcheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run static analysis
+        run: cppcheck --enable=warning,style,performance,portability --error-exitcode=1 -I include src
+        
