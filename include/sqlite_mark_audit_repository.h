@@ -12,6 +12,7 @@ public:
     void initializeTable();
 
     bool save(const MarkAuditEntry& entry);
+    std::vector<MarkAuditEntry> findAll() override;
 };
 
 #endif
