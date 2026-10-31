@@ -39,7 +39,7 @@ public:
 
     UserId getId() const;
     string getusername() const;
-    bool haspermission(Permission action) const;
+    virtual bool haspermission(Permission action) const;
     bool isActive() const;
     virtual ~User()=default;
     bool verifyPassword(const string& password) const;
