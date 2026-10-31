@@ -18,7 +18,7 @@ public:
         return "Student";
     }
 
-    bool haspermission(Permission action) const;
+    virtual bool haspermission(Permission action) const override;
 
     void addEnrollment(const Enrollment& enrollment);
 };
