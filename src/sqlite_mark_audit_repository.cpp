@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
+#include <cstdio>
 
 SQLiteMarkAuditRepository::SQLiteMarkAuditRepository(
     SQLiteConnection& connection
@@ -78,4 +79,70 @@ bool SQLiteMarkAuditRepository::save(const MarkAuditEntry& entry) {
 
     sqlite3_finalize(statement);
     return true;
+}
+
+std::vector<MarkAuditEntry> SQLiteMarkAuditRepository::findAll() {
+    std::vector<MarkAuditEntry> entries;
+
+    const char* sql = R"(
+        SELECT id, submission_id, changed_by, changed_at,
+               old_mark, new_mark, reason
+        FROM mark_audit
+        ORDER BY id;
+    )";
+
+    sqlite3_stmt* statement = nullptr;
+
+    if (sqlite3_prepare_v2(
+            getConnection(), sql, -1, &statement, nullptr
+        ) != SQLITE_OK) {
+        throw std::runtime_error(sqlite3_errmsg(getConnection()));
+    }
+
+    while (sqlite3_step(statement) == SQLITE_ROW) {
+
+        AuditId id = sqlite3_column_int(statement, 0);
+        SubmissionId submissionId = sqlite3_column_int(statement, 1);
+        UserId changedBy = sqlite3_column_int(statement, 2);
+
+        std::string dateText =
+            reinterpret_cast<const char*>(
+                sqlite3_column_text(statement, 3)
+            );
+
+        int year, month, day, hours, minutes, seconds;
+
+        std::sscanf(
+            dateText.c_str(),
+            "%d-%d-%d %d:%d:%d",
+            &year, &month, &day, &hours, &minutes, &seconds
+        );
+
+        Datetime changedAt;
+        changedAt.setyear(year);
+        changedAt.setmonth(month);
+        changedAt.setday(day);
+        changedAt.sethours(hours);
+        changedAt.setminutes(minutes);
+        changedAt.setseconds(seconds);
+
+        double oldMark = sqlite3_column_double(statement, 4);
+        double newMark = sqlite3_column_double(statement, 5);
+
+        std::string reason =
+            reinterpret_cast<const char*>(
+                sqlite3_column_text(statement, 6)
+            );
+
+        MarkAuditEntry entry(
+            id, submissionId, changedBy, changedAt,
+            oldMark, newMark, reason
+        );
+
+        entries.push_back(entry);
+    }
+
+    sqlite3_finalize(statement);
+
+    return entries;
 }
