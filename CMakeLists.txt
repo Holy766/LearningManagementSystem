@@ -17,4 +17,4 @@ target_include_directories(lms_test PRIVATE
     "${ARGON2_INCLUDE_DIR}"
 )
 
-target_link_libraries(lms_test PRIVATE SQLite3::SQLite3 "${ARGON2_LIBRARY}")
+target_link_libraries(lms_test PRIVATE SQLite::SQLite3 "${ARGON2_LIBRARY}")
