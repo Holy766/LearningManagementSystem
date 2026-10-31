@@ -13,7 +13,11 @@ Submission::Submission(SubmissionId id, AssignmentId assignmentId,UserId student
     : id(id),assignmentId(assignmentId), studentId(studentId),submittedAt(),fileReference(""),
       state(SubmissionState::SUBMITTED),markValue(0.0),feedback(""),hasMark(false) {
 }
-
+// Constructor for restoring a submission from the database
+Submission::Submission(SubmissionId id,AssignmentId assignmentId,UserId studentId,Datetime submittedAt,string fileReference,SubmissionState state,double markValue,
+    string feedback,bool hasMark): id(id),assignmentId(assignmentId),studentId(studentId),submittedAt(submittedAt),fileReference(fileReference),
+      state(state),markValue(markValue),feedback(feedback),hasMark(hasMark) {
+}
 // Submit work
 void Submission::submit(string fileReference, Datetime at,
     const Assignment& assignment) {
@@ -130,11 +134,11 @@ void Submission::mark(double mark, string feedback, UserId lecturerId,
     cout << "Feedback: " << this->feedback << endl;
 }
 
-
 double Submission::getMark() const {
-    if (state != SubmissionState::RELEASED) {
+    if (state != SubmissionState::MODERATED &&
+        state != SubmissionState::RELEASED) {
         throw std::logic_error(
-            "Mark is not available until it has been released."
+            "Mark is not available until HoD moderation."
         );
     }
 
@@ -142,9 +146,10 @@ double Submission::getMark() const {
 }
 
 string Submission::getFeedback() const {
-    if (state != SubmissionState::RELEASED) {
+    if (state != SubmissionState::MODERATED &&
+        state != SubmissionState::RELEASED) {
         throw std::logic_error(
-            "Feedback is not available until it has been released."
+            "Feedback is not available until HoD moderation."
         );
     }
 
@@ -181,4 +186,12 @@ string Submission::getFileReference() const {
 
 SubmissionState Submission::getState() const {
     return state;
+}
+
+double Submission::getStoredMark() const {
+    return markValue;
+}
+
+string Submission::getStoredFeedback() const {
+    return feedback;
 }

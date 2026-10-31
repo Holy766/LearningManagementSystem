@@ -232,3 +232,39 @@ std::optional<std::string> SQLiteUserRepository::authenticateRole(
     sqlite3_finalize(statement);
     return role;
 }
+
+std::optional<UserId> SQLiteUserRepository::getUserIdByUsername(
+    const std::string& username
+) {
+    sqlite3* db = getConnection();
+    sqlite3_stmt* statement = nullptr;
+
+    const char* sql =
+        "SELECT id FROM users "
+        "WHERE username = ? AND active = 1 LIMIT 1;";
+
+    if (sqlite3_prepare_v2(db, sql, -1, &statement, nullptr) != SQLITE_OK) {
+        throw std::runtime_error(
+            "Failed to retrieve user ID: " +
+            std::string(sqlite3_errmsg(db))
+        );
+    }
+
+    sqlite3_bind_text(
+        statement, 1, username.c_str(), -1, SQLITE_TRANSIENT
+    );
+
+    int result = sqlite3_step(statement);
+    std::optional<UserId> userId;
+
+    if (result == SQLITE_ROW) {
+        userId = sqlite3_column_int(statement, 0);
+    } else if (result != SQLITE_DONE) {
+        std::string error = sqlite3_errmsg(db);
+        sqlite3_finalize(statement);
+        throw std::runtime_error("Failed to retrieve user ID: " + error);
+    }
+
+    sqlite3_finalize(statement);
+    return userId;
+}
