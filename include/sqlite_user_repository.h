@@ -9,7 +9,7 @@
 class SQLiteUserRepository : public SQLiteRepository {
 public:
     explicit SQLiteUserRepository(SQLiteConnection& connection);
-
+    std::optional<UserId> getUserIdByUsername(const std::string& username);
     void createTable();
 
     bool saveUser(
