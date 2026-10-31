@@ -6,7 +6,7 @@
 using namespace std;
 
 Assignment::Assignment(AssignmentId id, CourseId courseId,
-    string title, Datetime deadline, double maximumMark)
+    const string& title, const Datetime& deadline, double maximumMark)
     : id(id), courseId(courseId), title(title),
       deadline(deadline), maximumMark(maximumMark) {
 
@@ -40,7 +40,7 @@ double Assignment::getMaximumMark() const {
 
 // Setters
 
-void Assignment::setTitle(string title) {
+void Assignment::setTitle(const string& title) {
     this->title = title;
 }
 
@@ -54,7 +54,7 @@ void Assignment::setMaximumMark(double maximumMark) {
     this->maximumMark = maximumMark;
 }
 
-void Assignment::updateDeadline(Datetime newDeadline) {
+void Assignment::updateDeadline(const Datetime& newDeadline) {
     deadline = newDeadline;
 }
 

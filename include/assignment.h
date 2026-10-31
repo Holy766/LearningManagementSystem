@@ -24,7 +24,7 @@ private:
     vector<Extension> extensions;
 
 public:
-    Assignment(AssignmentId id, CourseId courseId,string title, Datetime deadline,
+    Assignment(AssignmentId id, CourseId courseId,const string& title,const Datetime& deadline,
      double maximumMark);
 
     AssignmentId getId() const;
@@ -33,9 +33,9 @@ public:
     Datetime getDeadline() const;
     double getMaximumMark() const;
 
-    void setTitle(string title);
+    void setTitle(const string& title);
     void setMaximumMark(double maximumMark);
-    void updateDeadline(Datetime newDeadline);
+    void updateDeadline(const Datetime& newDeadline);
 
     void display() const;
     void addSubmission(const Submission& submission);
