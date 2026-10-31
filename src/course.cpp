@@ -1,7 +1,7 @@
 
 #include "course.h"
 
-Course::Course(CourseId id, DepartmentId departmentId,string code, string title): id(id), departmentId(departmentId),
+Course::Course(CourseId id, DepartmentId departmentId,const string& code, const string& title): id(id), departmentId(departmentId),
       code(code), title(title) {
 }
 
@@ -10,6 +10,7 @@ Course::Course(CourseId id, DepartmentId departmentId,string code, string title)
 CourseId Course::getId() const {
     return id;
 }
+
 
 DepartmentId Course::getDepartmentId() const {
     return departmentId;
@@ -25,11 +26,11 @@ string Course::getTitle() const {
 
 // Setters
 
-void Course::setCode(string code) {
+void Course::setCode(const string& code) {
     this->code = code;
 }
 
-void Course::setTitle(string title) {
+void Course::setTitle(const string& title) {
     this->title = title;
 }
 

@@ -22,15 +22,15 @@ private:
 
 public:
     Course(CourseId id, DepartmentId departmentId,
-           string code, string title);
+          const string& code, const string& title);
 
     CourseId getId() const;
     DepartmentId getDepartmentId() const;
     string getCode() const;
     string getTitle() const;
 
-    void setCode(string code);
-    void setTitle(string title);
+    void setCode(const string& code);
+    void setTitle(const string& title);
 
     void addAssignment(const Assignment& assignment);
     void displayAssignments() const;
