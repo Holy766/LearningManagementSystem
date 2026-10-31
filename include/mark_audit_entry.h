@@ -21,8 +21,8 @@ private:
     string reason;
 
 public:
-    MarkAuditEntry(AuditId id, SubmissionId submissionId, UserId changedBy, Datetime changedAt,
-        double oldMark, double newMark,string reason);
+    MarkAuditEntry(AuditId id, SubmissionId submissionId, UserId changedBy,const Datetime& changedAt,
+        double oldMark, double newMark,const string& reason);
 
     AuditId getId() const;
     SubmissionId getSubmissionId() const;

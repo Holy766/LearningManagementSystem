@@ -3,8 +3,8 @@
 
 MarkAuditEntry::MarkAuditEntry(
     AuditId id, SubmissionId submissionId,
-    UserId changedBy, Datetime changedAt,
-    double oldMark, double newMark, string reason)
+    UserId changedBy, const Datetime& changedAt,
+    double oldMark, double newMark, const string& reason)
     : id(id),
       submissionId(submissionId),
       changedBy(changedBy),
