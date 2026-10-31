@@ -5,6 +5,7 @@
 #include "sqlite_repository.h"
 #include "submission.h"
 #include <optional>
+#include <vector>
 
 class SQLiteSubmissionRepository : public SQLiteRepository {
 public:
@@ -19,6 +20,8 @@ public:
     bool update(const Submission& submission);
 
     bool remove(SubmissionId id);
+    std::vector<Submission> findByAssignmentId(AssignmentId assignmentId);
+    SubmissionId getNextSubmissionId();
 };
 
 #endif
