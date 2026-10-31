@@ -7,7 +7,7 @@ class HoD : public User {
 public:
     HoD(UserId id, const string& username,const string& passwordhash);
 
-    bool haspermission(Permission action) const;
+    virtual bool haspermission(Permission action) const override;
     string getRole() const override {
         return "Head of Department";
     }
