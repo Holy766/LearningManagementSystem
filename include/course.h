@@ -26,8 +26,8 @@ public:
 
     CourseId getId() const;
     DepartmentId getDepartmentId() const;
-    string getCode() const;
-    string getTitle() const;
+    const string& getCode() const;
+    const string& getTitle() const;
 
     void setCode(const string& code);
     void setTitle(const string& title);

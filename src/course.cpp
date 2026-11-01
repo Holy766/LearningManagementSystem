@@ -1,8 +1,7 @@
 
 #include "course.h"
 
-Course::Course(CourseId id, DepartmentId departmentId,const string& code, const string& title): id(id), departmentId(departmentId),
-      code(code), title(title) {
+Course::Course(CourseId id, DepartmentId departmentId,const string& code, const string& title): id(id), departmentId(departmentId),code(code), title(title) {
 }
 
 // Getters
@@ -16,11 +15,11 @@ DepartmentId Course::getDepartmentId() const {
     return departmentId;
 }
 
-string Course::getCode() const {
+const string& Course::getCode() const {
     return code;
 }
 
-string Course::getTitle() const {
+const string& Course::getTitle() const {
     return title;
 }
 
