@@ -18,7 +18,7 @@ public:
     Department(DepartmentId id, const string& name, UserId hodId);
 
     DepartmentId getId() const;
-    string getName() const;
+    const string& getName() const;
     UserId getHodId() const;
 
     void setName(const string& name);

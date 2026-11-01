@@ -14,6 +14,10 @@ string Department::getName() const {
     return name;
 }
 
+const string& Department::getName() const {
+    return name;
+}
+
 UserId Department::getHodId() const {
     return hodId;
 }
