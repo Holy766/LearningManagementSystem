@@ -19,7 +19,7 @@ Submission::Submission(SubmissionId id,AssignmentId assignmentId,UserId studentI
       state(state),markValue(markValue),feedback(feedback),hasMark(hasMark) {
 }
 // Submit work
-void Submission::submit(string fileReference, Datetime at,
+void Submission::submit(const string& fileReference, const Datetime& at,
     const Assignment& assignment) {
     if (hasSubmitted()) {
     throw std::invalid_argument(
@@ -46,7 +46,7 @@ void Submission::submit(string fileReference, Datetime at,
     cout << "Submission successful." << endl;
 }
 // Resubmit work
-bool Submission::resubmit(string fileReference, Datetime at,const Assignment& assignment) {
+bool Submission::resubmit(const string& fileReference, const Datetime& at,const Assignment& assignment) {
      if (assignment.getEffectiveDeadline(studentId).isBefore(at)) {
         cout << "Resubmission rejected: deadline has passed."<< endl;
         return false;
@@ -92,8 +92,8 @@ void Submission::transition(SubmissionState newState) {
 }
 // Mark submission
 
-void Submission::mark(double mark, string feedback, UserId lecturerId,
-    Datetime changedAt, string reason,
+void Submission::mark(double mark,const string& feedback, UserId lecturerId,
+    const Datetime& changedAt, const string& reason,
     MarkAuditManager& auditManager, const Assignment& assignment) {
 
     if (mark < 0 || mark > assignment.getMaximumMark()) {

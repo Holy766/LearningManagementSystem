@@ -36,12 +36,12 @@ private:
 public:
     Submission(SubmissionId id, AssignmentId assignmentId,UserId studentId);
 
-    void submit(string fileReference, Datetime at,const Assignment& assignment);
-    bool resubmit(string fileReference, Datetime at,const Assignment& assignment);
+    void submit(const string& fileReference, const Datetime& at,const Assignment& assignment);
+    bool resubmit(const string& fileReference, const Datetime& at,const Assignment& assignment);
     void release();
     void transition(SubmissionState newState);
 
-    void mark(double mark, string feedback, UserId lecturerId,Datetime changedAt, string reason,
+    void mark(double mark, const string& feedback, UserId lecturerId,const Datetime& changedAt, const string& reason,
          MarkAuditManager& auditManager,const Assignment& assignment);
     double getMark() const;
     string getFeedback() const;
