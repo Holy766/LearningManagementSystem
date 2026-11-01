@@ -9,7 +9,7 @@ UserId User::getId() const {
     return id;
 }
 
-string User::getusername() const {
+const string& User::getusername() const {
     return username;
 }
 

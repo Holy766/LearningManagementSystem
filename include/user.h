@@ -38,7 +38,7 @@ public:
     User(UserId id, const string& username, const string& password);
 
     UserId getId() const;
-    string getusername() const;
+    const string& getusername() const;
     virtual bool haspermission(Permission action) const;
     bool isActive() const;
     virtual ~User()=default;
