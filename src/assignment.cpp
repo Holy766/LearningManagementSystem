@@ -4,7 +4,7 @@
 #include "assignment.h"
 #include <algorithm>
 using namespace std;
-
+#include "daily_penalty_strategy.h"
 Assignment::Assignment(AssignmentId id, CourseId courseId,
     const string& title, const Datetime& deadline, double maximumMark)
     : id(id), courseId(courseId), title(title),
