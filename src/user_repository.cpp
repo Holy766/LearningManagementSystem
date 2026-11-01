@@ -11,14 +11,15 @@ void UserRepository::save(std::unique_ptr<User> user) {
     if (!user) {
         throw std::invalid_argument("Cannot save a null user.");
     }
-    bool hasNonSpace = std::any_of(
-    user->getusername().begin(),
-    user->getusername().end(),
+    string username = user->getusername();
+
+bool hasNonSpace = std::any_of(
+    username.begin(),
+    username.end(),
     [](char ch) {
         return !std::isspace(static_cast<unsigned char>(ch));
     }
 );
-
     if (!hasNonSpace) {
     throw std::invalid_argument("Username cannot be empty.");
     }
