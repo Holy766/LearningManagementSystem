@@ -9,18 +9,18 @@
 
 class SubmissionService {
 public:
-    bool submitWork( User& student, Submission& submission,Assignment& assignment,
-        const string& fileReference, Datetime submittedAt
+    bool submitWork(const User& student, Submission& submission,const Assignment& assignment,
+        const string& fileReference, const Datetime& submittedAt
     );
 
-    bool resubmitWork(User& student,Submission& submission,Assignment& assignment,
-        const string& fileReference,Datetime submittedAt
+    bool resubmitWork(const User& student,Submission& submission,const Assignment& assignment,
+        const string& fileReference,const Datetime& submittedAt
     );
     
-    bool moderateSubmission(User& hod, Submission& submission
+    bool moderateSubmission(const User& hod, Submission& submission
     );
 
-    bool releaseSubmission(User& hod,Submission& submission
+    bool releaseSubmission(const User& hod,Submission& submission
     );
 
 };

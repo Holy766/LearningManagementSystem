@@ -1,13 +1,8 @@
 #include "submission_service.h"
 #include <stdexcept>
 
-bool SubmissionService::submitWork(
-    User& student,
-    Submission& submission,
-    Assignment& assignment,
-    const string& fileReference,
-    Datetime submittedAt
-) {
+bool SubmissionService::submitWork(const User& student,Submission& submission,const Assignment& assignment,
+    const string& fileReference,const Datetime& submittedAt) {
     if (!student.isActive()) {
         throw std::runtime_error("Inactive users cannot submit work.");
     }
@@ -32,13 +27,8 @@ bool SubmissionService::submitWork(
     return submission.hasSubmitted();
 }
 
-bool SubmissionService::resubmitWork(
-    User& student,
-    Submission& submission,
-    Assignment& assignment,
-    const string& fileReference,
-    Datetime submittedAt
-) {
+bool SubmissionService::resubmitWork(const User& student,Submission& submission,const Assignment& assignment,
+    const string& fileReference,const Datetime& submittedAt) {
     if (!student.isActive()) {
         throw std::runtime_error("Inactive users cannot resubmit work.");
     }
@@ -63,9 +53,7 @@ bool SubmissionService::resubmitWork(
 }
 
 
-bool SubmissionService::moderateSubmission(
-    User& hod,
-    Submission& submission
+bool SubmissionService::moderateSubmission(const User& hod,Submission& submission
 ) {
     if (!hod.isActive()) {
         throw std::runtime_error(
@@ -89,9 +77,7 @@ bool SubmissionService::moderateSubmission(
     return true;
 }
 
-bool SubmissionService::releaseSubmission(
-    User& hod,
-    Submission& submission
+bool SubmissionService::releaseSubmission(const User& hod,Submission& submission
 ) {
     if (!hod.isActive()) {
         throw std::runtime_error(
