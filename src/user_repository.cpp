@@ -35,46 +35,61 @@ void UserRepository::save(std::unique_ptr<User> user) {
 
 std::optional<std::reference_wrapper<User>>
 UserRepository::findByUsername(const string& username) {
-    for (const auto& user : users) {
-        if (user->getusername() == username) {
-            return std::ref(*user);
+    auto it = std::find_if(
+        users.begin(),
+        users.end(),
+        [&username](const auto& user) {
+            return user->getusername() == username;
         }
+    );
+
+    if (it != users.end()) {
+        return std::ref(**it);
     }
 
     return std::nullopt;
 }
 
 User* UserRepository::findById(UserId id) const {
-    for (const auto& user : users) {
-        if (user->getId() == id) {
-            return user.get();
+    auto it = std::find_if(
+        users.begin(),
+        users.end(),
+        [id](const auto& user) {
+            return user->getId() == id;
         }
+    );
+
+    if (it != users.end()) {
+        return it->get();
     }
 
     return nullptr;
 }
-
 bool UserRepository::remove(UserId id) {
-    for (auto it = users.begin(); it != users.end(); ++it) {
-        if ((*it)->getId() == id) {
-            users.erase(it);
-            return true;
+    auto it = std::find_if(
+        users.begin(),
+        users.end(),
+        [id](const auto& user) {
+            return user->getId() == id;
         }
+    );
+
+    if (it != users.end()) {
+        users.erase(it);
+        return true;
     }
 
     return false;
 }
-
 bool UserRepository::usernameExists(const string& username) const {
-    for (const auto& user : users) {
-        if (user->getusername() == username) {
-            return true;
+    return std::any_of(
+        users.begin(),
+        users.end(),
+        [&username](const auto& user) {
+            return user->getusername() == username;
         }
-    }
-
-    return false;
+    );
 }
-
 bool UserRepository::idExists(UserId id) const {
     return findById(id) != nullptr;
 }
@@ -83,23 +98,25 @@ User* UserRepository::authenticate(
     const string& username,
     const string& password
 ) const {
-    for (const auto& user : users) {
-        if (user->getusername() == username) {
-            if (!user->isActive()) {
-                return nullptr;
-            }
-
-            if (user->verifyPassword(password)) {
-                return user.get();
-            }
-
-            return nullptr;
+    auto it = std::find_if(
+        users.begin(),
+        users.end(),
+        [&username](const auto& user) {
+            return user->getusername() == username;
         }
+    );
+
+    if (it == users.end()) {
+        return nullptr;
+    }
+
+    if (!(*it)->isActive()) {
+        return nullptr;
+    }
+
+    if ((*it)->verifyPassword(password)) {
+        return it->get();
     }
 
     return nullptr;
-}
-
-std::size_t UserRepository::getSize() const {
-    return users.size();
 }
