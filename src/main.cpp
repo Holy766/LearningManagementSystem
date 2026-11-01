@@ -121,7 +121,7 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
     // Find selected assignment
     const Assignment* selectedAssignment = nullptr;
 
-    auto it = std::find_if(
+    auto submissionIt = std::find_if(
     availableAssignments.begin(),
     availableAssignments.end(),
     [assignmentId](const Assignment& assignment) {
@@ -129,7 +129,7 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
     }
     );
 
-    if (it != availableAssignments.end()) {
+    if (submissionIt != availableAssignments.end()) {
     selectedAssignment = &(*it);
     }
 
