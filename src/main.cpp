@@ -5,6 +5,8 @@
 #include <vector>
 #include <exception>
 #include <limits>
+#include <algorithm>
+#include <iterator>
 
 #include "database.h"
 #include "sqlite_user_repository.h"
@@ -94,9 +96,8 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
                 auto assignments =
                     assignmentRepository.findByCourseId(course.getId());
 
-                for (const auto& assignment : assignments) {
-                    availableAssignments.push_back(assignment);
-                }
+                std::copy(assignments.begin(), assignments.end(), std::back_inserter(availableAssignments)
+            );
             }
         }
     }
@@ -120,11 +121,16 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
     // Find selected assignment
     const Assignment* selectedAssignment = nullptr;
 
-    for (const auto& assignment : availableAssignments) {
-        if (assignment.getId() == assignmentId) {
-            selectedAssignment = &assignment;
-            break;
-        }
+    auto it = std::find_if(
+    availableAssignments.begin(),
+    availableAssignments.end(),
+    [assignmentId](const Assignment& assignment) {
+        return assignment.getId() == assignmentId;
+    }
+    );
+
+    if (it != availableAssignments.end()) {
+    selectedAssignment = &(*it);
     }
 
     if (selectedAssignment == nullptr) {
@@ -138,13 +144,17 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
 
     Submission* selectedSubmission = nullptr;
 
-    for (auto& submission : submissions) {
-        if (submission.getStudentId() == studentId) {
-            selectedSubmission = &submission;
-            break;
-        }
+    auto it = std::find_if(
+    submissions.begin(),
+    submissions.end(),
+    [studentId](const Submission& submission) {
+        return submission.getStudentId() == studentId;
     }
+  );
 
+    if (it != submissions.end()) {
+    selectedSubmission = &(*it);
+   }
     if (selectedSubmission == nullptr) {
         std::cout << "You have not submitted this assignment yet.\n";
         return;
@@ -330,14 +340,19 @@ void submitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollmentRe
             vector<Submission> submissions =
                 submissionRepository.findByAssignmentId(selectedId);
 
-            for (const Submission& submission : submissions) {
-
-                if (submission.getStudentId() == studentId) {
-                    cout << "\nYou have already submitted this assignment."
-                         << "\nPlease use the Resubmit Work option.\n";
-                    return;
-                }
+            bool alreadySubmitted = std::any_of(
+                submissions.begin(),
+                submissions.end(),
+                [studentId](const Submission& submission) {
+                     return submission.getStudentId() == studentId;
             }
+    );
+
+    if (alreadySubmitted) {
+        cout << "\nYou have already submitted this assignment."
+            << "\nPlease use the Resubmit Work option.\n";
+        return;
+    }
 
             // Get the file reference
             string fileReference;
@@ -457,15 +472,23 @@ void createAssignment(
 
     cout << "\n===== YOUR ASSIGNED COURSES =====\n";
 
-    for (const Course& course : allCourses) {
-        for (int courseId : assignedCourses) {
-            if (course.getId() == courseId) {
-                cout << "ID: " << course.getId()
-                     << " | Code: " << course.getCode()
-                     << " | Title: " << course.getTitle() << endl;
-            }
+    
+       for (const Course& course : allCourses) {
+             bool isAssigned = std::any_of(
+            assignedCourses.begin(),
+            assignedCourses.end(),
+             [&course](int courseId) {
+            return course.getId() == courseId;
         }
+    );
+
+    if (isAssigned) {
+        cout << "ID: " << course.getId()
+             << " | Code: " << course.getCode()
+             << " | Title: " << course.getTitle() << endl;
     }
+    }
+
 
     cout << "\nEnter Course ID: ";
     int courseId;
@@ -646,12 +669,13 @@ void setAssignmentDeadline(
 
         bool assigned = false;
 
-        for (int courseId : assignedCourses) {
-            if (courseId == assignment->getCourseId()) {
-                assigned = true;
-                break;
-            }
+        assigned = std::any_of(
+            assignedCourses.begin(),
+             assignedCourses.end(),
+            [&assignment](int courseId) {
+            return courseId == assignment->getCourseId();
         }
+    );
 
         if (!assigned) {
             cout << "This assignment does not belong to your courses.\n";
@@ -757,12 +781,13 @@ void grantStudentExtension(
         // 4. Check that the lecturer owns the course
         bool assigned = false;
 
-        for (int courseId : assignedCourses) {
-            if (courseId == assignment->getCourseId()) {
-                assigned = true;
-                break;
+        assigned = std::any_of(
+            assignedCourses.begin(),
+            assignedCourses.end(),
+            [&assignment](int courseId) {
+                return courseId == assignment->getCourseId();
             }
-        }
+        );
 
         if (!assigned) {
             cout << "You are not assigned to this assignment.\n";
@@ -893,9 +918,7 @@ void grantStudentExtension(
         cout << "Error: " << error.what() << '\n';
     }
 }
-void viewSubmissions(
-    int lecturerId,
-    SQLiteLecturerAssignmentRepository& lecturerAssignmentRepository,
+void viewSubmissions(int lecturerId,SQLiteLecturerAssignmentRepository& lecturerAssignmentRepository,
     SQLiteAssignmentRepository& assignmentRepository,
     SQLiteSubmissionRepository& submissionRepository
 ) {
@@ -1045,12 +1068,13 @@ void markSubmissionAndGiveFeedback(int lecturerId,SQLiteLecturerAssignmentReposi
         // Verify lecturer owns the course
         bool ownsCourse = false;
 
-        for (int courseId : courseIds) {
-            if (courseId == assignment->getCourseId()) {
-                ownsCourse = true;
-                break;
+        ownsCourse = std::any_of(
+             courseIds.begin(),
+            courseIds.end(),
+            [&assignment](int courseId) {
+             return courseId == assignment->getCourseId();
             }
-        }
+        );
 
         if (!ownsCourse) {
             cout << "You are not assigned to this course." << endl;
@@ -1087,13 +1111,18 @@ void markSubmissionAndGiveFeedback(int lecturerId,SQLiteLecturerAssignmentReposi
             0, assignmentId, 0
         );
 
-        for (const Submission& submission : submissions) {
-            if (submission.getId() == submissionId) {
-                selectedSubmission = submission;
-                foundSubmission = true;
-                break;
+        auto it = std::find_if(
+            submissions.begin(),
+            submissions.end(),
+            [submissionId](const Submission& submission) {
+          return submission.getId() == submissionId;
             }
-        }
+    );
+
+    if (it != submissions.end()) {
+        selectedSubmission = *it;
+        foundSubmission = true;
+    }
 
         if (!foundSubmission) {
             cout << "Submission not found." << endl;
@@ -1316,13 +1345,14 @@ void moderateMarks(SQLiteAssignmentRepository& assignmentRepository,SQLiteSubmis
     // Check that the assignment belongs to this course
     bool assignmentFound = false;
 
-    for (const auto& assignment : assignments) {
-        if (assignment.getId() == assignmentId) {
-            assignmentFound = true;
-            break;
+    assignmentFound = std::any_of(
+            assignments.begin(),
+            assignments.end(),
+            [assignmentId](const Assignment& assignment) {
+             return assignment.getId() == assignmentId;
         }
-    }
-
+    );
+    
     if (!assignmentFound) {
         cout << "Invalid assignment ID for this course.\n";
         return;
@@ -1408,12 +1438,13 @@ void releaseMarks(SQLiteAssignmentRepository& assignmentRepository,SQLiteSubmiss
     // Verify that the assignment belongs to the selected course
     bool assignmentFound = false;
 
-    for (const auto& assignment : assignments) {
-        if (assignment.getId() == assignmentId) {
-            assignmentFound = true;
-            break;
+    assignmentFound = std::any_of(
+        assignments.begin(),
+        assignments.end(),
+        [assignmentId](const Assignment& assignment) {
+            return assignment.getId() == assignmentId;
         }
-    }
+    );
 
     if (!assignmentFound) {
         cout << "Invalid assignment ID for this course.\n";
@@ -1471,7 +1502,7 @@ void releaseMarks(SQLiteAssignmentRepository& assignmentRepository,SQLiteSubmiss
     cout << "Submission ID not found.\n";
 }
 
-void viewMarkAuditRecords(MarkAuditManager& auditManager) {
+void viewMarkAuditRecords(const MarkAuditManager& auditManager) {
 
     const vector<MarkAuditEntry>& entries = auditManager.getEntries();
 
