@@ -51,13 +51,13 @@ public:
     UserId getStudentId() const;
     
     SubmissionId getId() const;
-    Datetime getSubmittedAt() const;
-    string getFileReference() const;
+    const Datetime& getSubmittedAt() const;
+    const string& getFileReference() const;
     SubmissionState getState() const;
     Submission(SubmissionId id,AssignmentId assignmentId,UserId studentId,Datetime submittedAt,
     string fileReference,SubmissionState state,double markValue,string feedback,bool hasMark);
     double getStoredMark() const;
-    string getStoredFeedback() const;
+    const string& getStoredFeedback() const;
 
 };
 

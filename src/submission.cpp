@@ -176,11 +176,11 @@ SubmissionId Submission::getId() const {
     return id;
 }
 
-Datetime Submission::getSubmittedAt() const {
+const Datetime& Submission::getSubmittedAt() const {
     return submittedAt;
 }
 
-string Submission::getFileReference() const {
+const string& Submission::getFileReference() const {
     return fileReference;
 }
 
@@ -192,6 +192,6 @@ double Submission::getStoredMark() const {
     return markValue;
 }
 
-string Submission::getStoredFeedback() const {
+const string& Submission::getStoredFeedback() const {
     return feedback;
 }
