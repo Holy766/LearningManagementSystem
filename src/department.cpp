@@ -10,9 +10,6 @@ DepartmentId Department::getId() const {
     return id;
 }
 
-string Department::getName() const {
-    return name;
-}
 
 const string& Department::getName() const {
     return name;
