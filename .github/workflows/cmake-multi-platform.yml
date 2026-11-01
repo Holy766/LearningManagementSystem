@@ -3,7 +3,7 @@ name: LMS Build and Tests
 
 on:
   push:
-    branches: [main, feature/phase-6-quality-assurance]
+    branches: [main, feature/phase-6-quality-assurance, feature/phase-8-class-extensions]
   pull_request:
     branches: [main]
 

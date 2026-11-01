@@ -5,6 +5,7 @@
 #include "extension.h"
 #include <vector>
 #include <optional>
+#include <string>
 
 class SQLiteExtensionRepository : public SQLiteRepository {
 public:
@@ -15,6 +16,16 @@ public:
     bool save(const Extension& extension);
 
     std::optional<Extension> findById(ExtensionId id);
+
+    // Saves one extension record for every student in the supplied class.
+    // The operation is atomic: either every student receives the extension or none do.
+    bool saveForStudents(
+        AssignmentId assignmentId,
+        const std::vector<UserId>& studentIds,
+        const Datetime& revisedDeadline,
+        const std::string& reason,
+        UserId grantedBy
+    );
 
     std::vector<Extension> findByAssignmentAndStudent(
         AssignmentId assignmentId,

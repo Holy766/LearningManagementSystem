@@ -213,7 +213,7 @@ void resubmitStudentWork(
     }
 }
 void viewStudentAssignments(UserId studentId,SQLiteEnrollmentRepository& enrollmentRepository,SQLiteCourseRepository& courseRepository,
-    SQLiteAssignmentRepository& assignmentRepository) {
+    SQLiteAssignmentRepository& assignmentRepository, SQLiteExtensionRepository& extensionRepository) {
     // Get all enrollments
     vector<Enrollment> enrollments =
         enrollmentRepository.getAllEnrollments();
@@ -250,6 +250,13 @@ void viewStudentAssignments(UserId studentId,SQLiteEnrollmentRepository& enrollm
                     for (const Assignment& assignment : assignments) {
 
                         Datetime deadline = assignment.getDeadline();
+                        auto extensions = extensionRepository.findByAssignmentAndStudent(
+                            assignment.getId(), studentId
+                        );
+                        bool hasExtension = !extensions.empty();
+                        if (hasExtension) {
+                            deadline = extensions.back().getRevisedDeadline();
+                        }
 
                         cout << "\nAssignment ID: "
                              << assignment.getId();
@@ -263,6 +270,9 @@ void viewStudentAssignments(UserId studentId,SQLiteEnrollmentRepository& enrollm
                              << deadline.getyear() << " "
                              << deadline.gethours() << ":"
                              << deadline.getminutes();
+                        if (hasExtension) {
+                            cout << "\nExtension: Granted";
+                        }
 
                         cout << "\nMaximum Mark: "
                              << assignment.getMaximumMark();
@@ -424,7 +434,8 @@ void submitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollmentRe
     }
 }
 void studentMenu(UserId studentId,SQLiteEnrollmentRepository& enrollmentRepository,SQLiteCourseRepository& courseRepository,
-    SQLiteAssignmentRepository& assignmentRepository, SQLiteSubmissionRepository& submissionRepository) {
+    SQLiteAssignmentRepository& assignmentRepository, SQLiteExtensionRepository& extensionRepository,
+    SQLiteSubmissionRepository& submissionRepository) {
     int choice;
     do {
         cout << "\n===== Student Menu =====\n";
@@ -442,7 +453,7 @@ void studentMenu(UserId studentId,SQLiteEnrollmentRepository& enrollmentReposito
 
         switch (choice) {
             case 1: {
-                viewStudentAssignments(studentId, enrollmentRepository, courseRepository, assignmentRepository);
+                viewStudentAssignments(studentId, enrollmentRepository, courseRepository, assignmentRepository, extensionRepository);
                  break;
             }
             case 2: {
@@ -755,7 +766,6 @@ void grantStudentExtension(
     SQLiteEnrollmentRepository& enrollmentRepository,
     SQLiteExtensionRepository& extensionRepository
 ) {
-    // 1. Get courses assigned to this lecturer
     vector<int> assignedCourses =
         lecturerAssignmentRepository.getCoursesForLecturer(lecturerId);
 
@@ -764,36 +774,22 @@ void grantStudentExtension(
         return;
     }
 
-    // 2. Display lecturer's assignments
-    cout << "\n===== GRANT STUDENT EXTENSION =====\n";
-
-    viewAssignments(
-        lecturerId,
-        lecturerAssignmentRepository,
-        assignmentRepository
-    );
+    cout << "\n===== GRANT ASSIGNMENT EXTENSION =====\n";
+    viewAssignments(lecturerId, lecturerAssignmentRepository, assignmentRepository);
 
     int assignmentId;
-
     cout << "\nEnter Assignment ID: ";
     cin >> assignmentId;
 
     try {
-        // 3. Find the assignment
-        auto assignment =
-            assignmentRepository.findById(assignmentId);
-
+        auto assignment = assignmentRepository.findById(assignmentId);
         if (!assignment.has_value()) {
             cout << "Assignment not found.\n";
             return;
         }
 
-        // 4. Check that the lecturer owns the course
-        bool assigned = false;
-
-        assigned = std::any_of(
-            assignedCourses.begin(),
-            assignedCourses.end(),
+        bool assigned = std::any_of(
+            assignedCourses.begin(), assignedCourses.end(),
             [&assignment](int courseId) {
                 return courseId == assignment->getCourseId();
             }
@@ -804,101 +800,69 @@ void grantStudentExtension(
             return;
         }
 
-        // 5. Get student ID
-        int studentId;
+        int extensionType;
+        cout << "1. Extend deadline for one student\n";
+        cout << "2. Extend deadline for the whole class\n";
+        cout << "Choose extension type: ";
+        cin >> extensionType;
 
-        cout << "Enter Student ID: ";
-        cin >> studentId;
-
-        if (studentId <= 0) {
-            cout << "Invalid student ID.\n";
+        if (extensionType != 1 && extensionType != 2) {
+            cout << "Invalid extension type.\n";
             return;
         }
 
-        // 6. Check student enrollment
-        if (!enrollmentRepository.isStudentEnrolled(
-                studentId,
-                assignment->getCourseId()
-            )) {
-
-            cout << "Student is not enrolled in this course.\n";
-            return;
+        vector<UserId> affectedStudents;
+        if (extensionType == 1) {
+            int studentId;
+            cout << "Enter Student ID: ";
+            cin >> studentId;
+            if (studentId <= 0 || !enrollmentRepository.isStudentEnrolled(
+                    studentId, assignment->getCourseId())) {
+                cout << "Student is not enrolled in this course.\n";
+                return;
+            }
+            affectedStudents.push_back(studentId);
+        } else {
+            vector<Enrollment> enrollments = enrollmentRepository.getAllEnrollments();
+            for (const Enrollment& enrollment : enrollments) {
+                if (enrollment.getCourseId() == assignment->getCourseId()) {
+                    affectedStudents.push_back(enrollment.getStudentId());
+                }
+            }
+            if (affectedStudents.empty()) {
+                cout << "There are no students enrolled in this class.\n";
+                return;
+            }
+            cout << "This extension will apply to " << affectedStudents.size()
+                 << " enrolled student(s).\n";
         }
 
-        // 7. Check for an existing extension
-        vector<Extension> existingExtensions =
-            extensionRepository.findByAssignmentAndStudent(
-                assignmentId,
-                studentId
-            );
-
-        if (!existingExtensions.empty()) {
-            cout << "This student already has an extension "
-                 << "for this assignment.\n";
-            return;
-        }
-
-        // 8. Collect extension details
-        int extensionId;
-        int day, month, year;
-        int hours, minutes, seconds;
         string reason;
-
-        cout << "\nEnter Extension ID: ";
-        cin >> extensionId;
-
-        if (extensionId <= 0) {
-            cout << "Invalid extension ID.\n";
-            return;
-        }
-
-        cin.ignore(
-            std::numeric_limits<std::streamsize>::max(),
-            '\n'
-        );
-
+        cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         cout << "Enter Reason for Extension: ";
         getline(cin, reason);
-
         if (reason.empty()) {
             cout << "Reason cannot be empty.\n";
             return;
         }
 
+        int day, month, year, hours, minutes, seconds;
         cout << "\nEnter Revised Deadline\n";
+        cout << "Day: "; cin >> day;
+        cout << "Month: "; cin >> month;
+        cout << "Year: "; cin >> year;
+        cout << "Hours (0-23): "; cin >> hours;
+        cout << "Minutes (0-59): "; cin >> minutes;
+        cout << "Seconds (0-59): "; cin >> seconds;
 
-        cout << "Day: ";
-        cin >> day;
-
-        cout << "Month: ";
-        cin >> month;
-
-        cout << "Year: ";
-        cin >> year;
-
-        cout << "Hours (0-23): ";
-        cin >> hours;
-
-        cout << "Minutes (0-59): ";
-        cin >> minutes;
-
-        cout << "Seconds (0-59): ";
-        cin >> seconds;
-
-        if (month < 1 || month > 12 ||
-            day < 1 || day > 31 ||
-            year < 2026 ||
-            hours < 0 || hours > 23 ||
-            minutes < 0 || minutes > 59 ||
-            seconds < 0 || seconds > 59) {
-
+        if (month < 1 || month > 12 || day < 1 || day > 31 ||
+            year < 2026 || hours < 0 || hours > 23 ||
+            minutes < 0 || minutes > 59 || seconds < 0 || seconds > 59) {
             cout << "Invalid deadline details.\n";
             return;
         }
 
-        // 9. Create revised deadline
         Datetime revisedDeadline;
-
         revisedDeadline.setday(day);
         revisedDeadline.setmonth(month);
         revisedDeadline.setyear(year);
@@ -906,28 +870,44 @@ void grantStudentExtension(
         revisedDeadline.setminutes(minutes);
         revisedDeadline.setseconds(seconds);
 
-        // 10. Create extension object
-        Extension extension(
-            extensionId,
-            assignmentId,
-            studentId,
-            revisedDeadline,
-            reason,
-            lecturerId
-        );
+        if (extensionType == 1) {
+            if (!extensionRepository.findByAssignmentAndStudent(
+                    assignmentId, affectedStudents.front()).empty()) {
+                cout << "This student already has an extension for this assignment.\n";
+                return;
+            }
 
-        // 11. Save extension
-        if (extensionRepository.save(extension)) {
-            cout << "\nStudent extension granted successfully!\n";
+            int extensionId;
+            cout << "Enter Extension ID: ";
+            cin >> extensionId;
+            if (extensionId <= 0) {
+                cout << "Invalid extension ID.\n";
+                return;
+            }
+
+            Extension extension(
+                extensionId, assignmentId, affectedStudents.front(),
+                revisedDeadline, reason, lecturerId
+            );
+            if (extensionRepository.save(extension)) {
+                cout << "Individual student extension granted successfully.\n";
+            } else {
+                cout << "Could not save the extension. Check the extension ID.\n";
+            }
         } else {
-            cout << "Could not save the extension. "
-                 << "Check whether the extension ID already exists.\n";
+            if (extensionRepository.saveForStudents(
+                    assignmentId, affectedStudents, revisedDeadline, reason, lecturerId)) {
+                cout << "Class-wide extension granted successfully to "
+                     << affectedStudents.size() << " student(s).\n";
+            } else {
+                cout << "Could not save the class-wide extension. No changes were made.\n";
+            }
         }
-
     } catch (const std::exception& error) {
         cout << "Error: " << error.what() << '\n';
     }
 }
+
 void viewSubmissions(int lecturerId,SQLiteLecturerAssignmentRepository& lecturerAssignmentRepository,
     SQLiteAssignmentRepository& assignmentRepository,
     SQLiteSubmissionRepository& submissionRepository
@@ -2106,7 +2086,7 @@ int main() {
                 cout << "Login successful. Role: " << *role << '\n';
 
                 if (*role == "Student") {
-                    studentMenu(*loggedInUserId,enrollmentRepository,courseRepository,assignmentRepository,submissionRepository);
+                    studentMenu(*loggedInUserId,enrollmentRepository,courseRepository,assignmentRepository,extensionRepository,submissionRepository);
                 } else if (*role == "Lecturer") {
                 lecturerMenu(*loggedInUserId, courseRepository,lecturerAssignmentRepository,assignmentRepository,extensionRepository,enrollmentRepository, submissionRepository,
                 auditManager); 

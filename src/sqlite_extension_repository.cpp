@@ -2,6 +2,7 @@
 #include <sqlite3.h>
 #include <stdexcept>
 #include <string>
+#include <algorithm>
 
 SQLiteExtensionRepository::SQLiteExtensionRepository(
     SQLiteConnection& connection
@@ -76,6 +77,97 @@ bool SQLiteExtensionRepository::save(const Extension& extension) {
 
     return result == SQLITE_DONE;
 }
+
+bool SQLiteExtensionRepository::saveForStudents(
+    AssignmentId assignmentId,
+    const std::vector<UserId>& studentIds,
+    const Datetime& revisedDeadline,
+    const std::string& reason,
+    UserId grantedBy
+) {
+    if (assignmentId <= 0 || grantedBy <= 0 || studentIds.empty() || reason.empty()) {
+        return false;
+    }
+
+    // Reject invalid or duplicate student IDs before starting the transaction.
+    std::vector<UserId> uniqueStudentIds = studentIds;
+    std::sort(uniqueStudentIds.begin(), uniqueStudentIds.end());
+    if (uniqueStudentIds.front() <= 0 ||
+        std::adjacent_find(uniqueStudentIds.begin(), uniqueStudentIds.end()) != uniqueStudentIds.end()) {
+        return false;
+    }
+
+    sqlite3* db = getConnection();
+    char* errorMessage = nullptr;
+    if (sqlite3_exec(db, "BEGIN IMMEDIATE TRANSACTION;", nullptr, nullptr, &errorMessage) != SQLITE_OK) {
+        std::string error = errorMessage ? errorMessage : sqlite3_errmsg(db);
+        sqlite3_free(errorMessage);
+        throw std::runtime_error(error);
+    }
+
+    try {
+        // Generate IDs only for students who do not already have an extension.
+        sqlite3_stmt* idStatement = nullptr;
+        const char* idSql = "SELECT COALESCE(MAX(id), 0) + 1 FROM extensions;";
+        if (sqlite3_prepare_v2(db, idSql, -1, &idStatement, nullptr) != SQLITE_OK) {
+            throw std::runtime_error(sqlite3_errmsg(db));
+        }
+        int result = sqlite3_step(idStatement);
+        if (result != SQLITE_ROW) {
+            std::string error = sqlite3_errmsg(db);
+            sqlite3_finalize(idStatement);
+            throw std::runtime_error(error);
+        }
+        ExtensionId nextId = sqlite3_column_int(idStatement, 0);
+        sqlite3_finalize(idStatement);
+
+        Datetime deadlineCopy = revisedDeadline;
+        for (UserId studentId : uniqueStudentIds) {
+            const auto existing = findByAssignmentAndStudent(assignmentId, studentId);
+            if (!existing.empty()) {
+                sqlite3_stmt* updateStatement = nullptr;
+                const char* updateSql =
+                    "UPDATE extensions SET day = ?, month = ?, year = ?, "
+                    "hours = ?, minutes = ?, seconds = ?, reason = ?, granted_by = ? "
+                    "WHERE assignment_id = ? AND student_id = ?;";
+                if (sqlite3_prepare_v2(db, updateSql, -1, &updateStatement, nullptr) != SQLITE_OK) {
+                    throw std::runtime_error(sqlite3_errmsg(db));
+                }
+                sqlite3_bind_int(updateStatement, 1, deadlineCopy.getday());
+                sqlite3_bind_int(updateStatement, 2, deadlineCopy.getmonth());
+                sqlite3_bind_int(updateStatement, 3, deadlineCopy.getyear());
+                sqlite3_bind_int(updateStatement, 4, deadlineCopy.gethours());
+                sqlite3_bind_int(updateStatement, 5, deadlineCopy.getminutes());
+                sqlite3_bind_int(updateStatement, 6, deadlineCopy.getseconds());
+                sqlite3_bind_text(updateStatement, 7, reason.c_str(), -1, SQLITE_TRANSIENT);
+                sqlite3_bind_int(updateStatement, 8, grantedBy);
+                sqlite3_bind_int(updateStatement, 9, assignmentId);
+                sqlite3_bind_int(updateStatement, 10, studentId);
+                const int updateResult = sqlite3_step(updateStatement);
+                sqlite3_finalize(updateStatement);
+                if (updateResult != SQLITE_DONE) {
+                    throw std::runtime_error(sqlite3_errmsg(db));
+                }
+            } else {
+                Extension extension(
+                    nextId++, assignmentId, studentId, revisedDeadline, reason, grantedBy
+                );
+                if (!save(extension)) {
+                    throw std::runtime_error(sqlite3_errmsg(db));
+                }
+            }
+        }
+
+        if (sqlite3_exec(db, "COMMIT;", nullptr, nullptr, nullptr) != SQLITE_OK) {
+            throw std::runtime_error(sqlite3_errmsg(db));
+        }
+        return true;
+    } catch (...) {
+        sqlite3_exec(db, "ROLLBACK;", nullptr, nullptr, nullptr);
+        throw;
+    }
+}
+
 std::optional<Extension> SQLiteExtensionRepository::findById(
     ExtensionId id
 ) {
