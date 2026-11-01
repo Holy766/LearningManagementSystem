@@ -20,6 +20,6 @@ CourseId Enrollment::getCourseId() const {
     return courseId;
 }
 
-Datetime Enrollment::getEnrolledAt() const {
+const Datetime& Enrollment::getEnrolledAt() const {
     return enrolledAt;
 }

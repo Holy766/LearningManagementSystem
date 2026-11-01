@@ -16,13 +16,12 @@ private:
     Datetime enrolledAt;
 
 public:
-    Enrollment(EnrollmentId id, UserId studentId,
-               CourseId courseId, const Datetime& enrolledAt);
+    Enrollment(EnrollmentId id, UserId studentId,  CourseId courseId, const Datetime& enrolledAt);
 
     EnrollmentId getId() const;
     UserId getStudentId() const;
     CourseId getCourseId() const;
-    Datetime getEnrolledAt() const;
+    const Datetime& getEnrolledAt() const;
 };
 
 #endif
