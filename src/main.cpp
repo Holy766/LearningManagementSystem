@@ -78,8 +78,13 @@ void viewReleasedMarks(UserId studentId,SQLiteSubmissionRepository& submissionRe
     }
 }
 
-void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollmentRepository,SQLiteCourseRepository& courseRepository,
-    SQLiteAssignmentRepository& assignmentRepository,SQLiteSubmissionRepository& submissionRepository) {
+void resubmitStudentWork(
+    UserId studentId,
+    SQLiteEnrollmentRepository& enrollmentRepository,
+    SQLiteCourseRepository& courseRepository,
+    SQLiteAssignmentRepository& assignmentRepository,
+    SQLiteSubmissionRepository& submissionRepository
+) {
     auto enrollments = enrollmentRepository.getAllEnrollments();
     auto courses = courseRepository.getAllCourses();
 
@@ -96,8 +101,11 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
                 auto assignments =
                     assignmentRepository.findByCourseId(course.getId());
 
-                std::copy(assignments.begin(), assignments.end(), std::back_inserter(availableAssignments)
-            );
+                std::copy(
+                    assignments.begin(),
+                    assignments.end(),
+                    std::back_inserter(availableAssignments)
+                );
             }
         }
     }
@@ -121,16 +129,16 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
     // Find selected assignment
     const Assignment* selectedAssignment = nullptr;
 
-    auto submissionIt = std::find_if(
-    availableAssignments.begin(),
-    availableAssignments.end(),
-    [assignmentId](const Assignment& assignment) {
-        return assignment.getId() == assignmentId;
-    }
+    auto assignmentIt = std::find_if(
+        availableAssignments.begin(),
+        availableAssignments.end(),
+        [assignmentId](const Assignment& assignment) {
+            return assignment.getId() == assignmentId;
+        }
     );
 
-    if (submissionIt != availableAssignments.end()) {
-    selectedAssignment = &(*it);
+    if (assignmentIt != availableAssignments.end()) {
+        selectedAssignment = &(*assignmentIt);
     }
 
     if (selectedAssignment == nullptr) {
@@ -144,17 +152,18 @@ void resubmitStudentWork(UserId studentId,SQLiteEnrollmentRepository& enrollment
 
     Submission* selectedSubmission = nullptr;
 
-    auto it = std::find_if(
-    submissions.begin(),
-    submissions.end(),
-    [studentId](const Submission& submission) {
-        return submission.getStudentId() == studentId;
-    }
-  );
+    auto studentSubmissionIt = std::find_if(
+        submissions.begin(),
+        submissions.end(),
+        [studentId](const Submission& submission) {
+            return submission.getStudentId() == studentId;
+        }
+    );
 
-    if (it != submissions.end()) {
-    selectedSubmission = &(*it);
-   }
+    if (studentSubmissionIt != submissions.end()) {
+        selectedSubmission = &(*studentSubmissionIt);
+    }
+
     if (selectedSubmission == nullptr) {
         std::cout << "You have not submitted this assignment yet.\n";
         return;
