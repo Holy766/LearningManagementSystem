@@ -505,12 +505,13 @@ void createAssignment(
 
     bool assigned = false;
 
-    for (int id : assignedCourses) {
-        if (id == courseId) {
-            assigned = true;
-            break;
-        }
-    }
+    assigned = std::any_of(
+      assignedCourses.begin(),
+      assignedCourses.end(),
+      [courseId](int id) {
+        return id == courseId;
+     }
+    );
 
     if (!assigned) {
         cout << "You are not assigned to this course.\n";
@@ -1544,7 +1545,7 @@ void viewMarkAuditRecords(const MarkAuditManager& auditManager) {
         cout << "-----------------------------\n";
     }
 }
-void hodMenu(SQLiteAssignmentRepository& assignmentRepository,SQLiteSubmissionRepository& submissionRepository,MarkAuditManager& auditManage) {
+void hodMenu(SQLiteAssignmentRepository& assignmentRepository,SQLiteSubmissionRepository& submissionRepository,const MarkAuditManager& auditManage) {
     int choice;
     do {
         cout << "\n===== Head of Department Menu =====\n";
