@@ -2,7 +2,7 @@
 #include <iostream>
 #include <stdexcept>
 #include "assignment.h"
-
+#include <algorithm>
 using namespace std;
 
 Assignment::Assignment(AssignmentId id, CourseId courseId,
@@ -88,40 +88,35 @@ void Assignment::addExtension(const Extension& extension) {
             "Extension belongs to a different assignment."
         );
     }
-
-    for (const Extension& existing : extensions) {
-        if (existing.getStudentId() == extension.getStudentId()) {
-            throw std::invalid_argument(
-                "This student already has an extension for this assignment."
-            );
-        }
+    bool alreadyExists = std::any_of(
+    extensions.begin(),
+    extensions.end(),
+    [&extension](const Extension& existing) {
+        return existing.getStudentId() == extension.getStudentId();
     }
+);
+
+if (alreadyExists) {
+    throw std::invalid_argument(
+        "This student already has an extension for this assignment."
+    );
+}
 
     extensions.push_back(extension);
 }
 
-
 Datetime Assignment::getEffectiveDeadline(UserId studentId) const {
-    for (const Extension& extension : extensions) {
-        if (extension.getStudentId() == studentId) {
-            return extension.getRevisedDeadline();
+    auto it = std::find_if(
+        extensions.begin(),
+        extensions.end(),
+        [studentId](const Extension& extension) {
+            return extension.getStudentId() == studentId;
         }
+    );
+
+    if (it != extensions.end()) {
+        return it->getRevisedDeadline();
     }
 
     return deadline;
-}
-
-double Assignment::calculateLatePenalty(double mark, int daysLate) const {
-    if (daysLate <= 0) {
-        return mark;
-    }
-
-    if (daysLate > 3) {
-        return 0.0;
-    }
-
-    double penalty = maximumMark * 0.10 * daysLate;
-    double finalMark = mark - penalty;
-
-    return (finalMark < 0) ? 0.0 : finalMark;
 }
