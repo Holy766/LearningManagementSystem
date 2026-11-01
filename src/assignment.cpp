@@ -5,6 +5,7 @@
 #include <algorithm>
 using namespace std;
 #include "daily_penalty_strategy.h"
+
 Assignment::Assignment(AssignmentId id, CourseId courseId,
     const string& title, const Datetime& deadline, double maximumMark)
     : id(id), courseId(courseId), title(title),
@@ -26,11 +27,11 @@ CourseId Assignment::getCourseId() const {
     return courseId;
 }
 
-string Assignment::getTitle() const {
+const string& Assignment::getTitle() const {
     return title;
 }
 
-Datetime Assignment::getDeadline() const {
+const Datetime& Assignment::getDeadline() const {
     return deadline;
 }
 

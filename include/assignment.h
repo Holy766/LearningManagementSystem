@@ -29,8 +29,8 @@ public:
 
     AssignmentId getId() const;
     CourseId getCourseId() const;
-    string getTitle() const;
-    Datetime getDeadline() const;
+    const string& getTitle() const;
+    const Datetime& getDeadline() const;
     double getMaximumMark() const;
 
     void setTitle(const string& title);
