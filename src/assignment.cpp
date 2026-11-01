@@ -120,3 +120,13 @@ Datetime Assignment::getEffectiveDeadline(UserId studentId) const {
 
     return deadline;
 }
+
+double Assignment::calculateLatePenalty(double mark, int daysLate) const {
+    DailyPenaltyStrategy strategy(0.10);
+
+    return strategy.calculatePenalty(
+        mark,
+        daysLate,
+        maximumMark
+    );
+}
