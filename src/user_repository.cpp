@@ -1,6 +1,7 @@
 
 #include "user_repository.h"
 #include "password_hasher.h"
+#include <algorithm>
 
 #include <stdexcept>
 #include <utility>
@@ -10,14 +11,13 @@ void UserRepository::save(std::unique_ptr<User> user) {
     if (!user) {
         throw std::invalid_argument("Cannot save a null user.");
     }
-    bool hasNonSpace = false;
-
-    for (char ch : user->getusername()) {
-    if (!std::isspace(static_cast<unsigned char>(ch))) {
-        hasNonSpace = true;
-        break;
-     }
+    bool hasNonSpace = std::any_of(
+    user->getusername().begin(),
+    user->getusername().end(),
+    [](char ch) {
+        return !std::isspace(static_cast<unsigned char>(ch));
     }
+);
 
     if (!hasNonSpace) {
     throw std::invalid_argument("Username cannot be empty.");
