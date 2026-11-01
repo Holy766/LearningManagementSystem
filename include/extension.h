@@ -20,15 +20,13 @@ private:
     UserId grantedBy;
 
 public:
-    Extension(ExtensionId id, AssignmentId assignmentId,
-              UserId studentId, Datetime revisedDeadline,
-              string reason, UserId grantedBy);
+    Extension(ExtensionId id, AssignmentId assignmentId,UserId studentId, Datetime revisedDeadline,string reason, UserId grantedBy);
 
     ExtensionId getId() const;
     AssignmentId getAssignmentId() const;
     UserId getStudentId() const;
-    Datetime getRevisedDeadline() const;
-    string getReason() const;
+    const Datetime& getRevisedDeadline() const;
+    const string& getReason() const;
     UserId getGrantedBy() const;
 };
 

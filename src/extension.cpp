@@ -38,11 +38,11 @@ UserId Extension::getStudentId() const {
     return studentId;
 }
 
-Datetime Extension::getRevisedDeadline() const {
+const Datetime& Extension::getRevisedDeadline() const {
     return revisedDeadline;
 }
 
-string Extension::getReason() const {
+const string& Extension::getReason() const {
     return reason;
 }
 
