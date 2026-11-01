@@ -26,7 +26,7 @@ UserId MarkAuditEntry::getChangedBy() const {
     return changedBy;
 }
 
-Datetime MarkAuditEntry::getChangedAt() const {
+const Datetime& MarkAuditEntry::getChangedAt() const {
     return changedAt;
 }
 
@@ -38,6 +38,6 @@ double MarkAuditEntry::getNewMark() const {
     return newMark;
 }
 
-string MarkAuditEntry::getReason() const {
+const string& MarkAuditEntry::getReason() const {
     return reason;
 }

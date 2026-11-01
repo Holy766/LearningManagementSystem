@@ -27,10 +27,10 @@ public:
     AuditId getId() const;
     SubmissionId getSubmissionId() const;
     UserId getChangedBy() const;
-    Datetime getChangedAt() const;
+    const Datetime& getChangedAt() const;
     double getOldMark() const;
     double getNewMark() const;
-    string getReason() const;
+    const string& getReason() const;
 };
 
 #endif
