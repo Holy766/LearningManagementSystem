@@ -31,6 +31,7 @@ public:
     void display() const;
     bool isBefore(const Datetime& other) const;
     int daysDifference(const Datetime& other) const;
+    int startedDaysLate(const Datetime& other) const;
 };
 
 #endif

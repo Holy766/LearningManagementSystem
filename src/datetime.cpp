@@ -114,3 +114,41 @@ int Datetime::daysDifference(const Datetime& other) const {
     return dayNumber(other.year, other.month, other.day)
          - dayNumber(year, month, day);
 }
+
+int Datetime::startedDaysLate(const Datetime& other) const {
+    auto toSeconds = [](int y, int m, int d,
+                        int h, int min, int s) {
+
+        y -= (m <= 2);
+
+        int era = (y >= 0 ? y : y - 399) / 400;
+        unsigned int yearOfEra = y - era * 400;
+
+        unsigned int monthOfYear = m + (m > 2 ? -3 : 9);
+
+        unsigned int dayOfYear =
+            (153 * monthOfYear + 2) / 5 + d - 1;
+
+        unsigned int dayOfEra =
+            yearOfEra * 365 + yearOfEra / 4
+            - yearOfEra / 100 + dayOfYear;
+
+        long long totalDays =
+            era * 146097LL + dayOfEra;
+
+        return totalDays * 86400
+             + h * 3600 + min * 60 + s;
+    };
+
+    long long difference =
+        toSeconds(other.year, other.month, other.day,
+                  other.hours, other.minutes, other.seconds)
+        -
+        toSeconds(year, month, day, hours, minutes, seconds);
+
+    if (difference <= 0) {
+        return 0;
+    }
+
+    return static_cast<int>((difference + 86399) / 86400);
+}
