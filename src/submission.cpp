@@ -19,42 +19,53 @@ Submission::Submission(SubmissionId id,AssignmentId assignmentId,UserId studentI
       state(state),markValue(markValue),feedback(feedback),hasMark(hasMark) {
 }
 // Submit work
-void Submission::submit(const string& fileReference, const Datetime& at,
-    const Assignment& assignment) {
+void Submission::submit(const string& fileReference,const Datetime& at,const Assignment& assignment) {
     if (hasSubmitted()) {
-    throw std::invalid_argument(
-        "Work has already been submitted. Use resubmit instead."
-    );
+        throw std::invalid_argument(
+            "Work has already been submitted. Use resubmit instead."
+        );
     }
-    Datetime effectiveDeadline =
-        assignment.getEffectiveDeadline(studentId);
 
-    if (effectiveDeadline.isBefore(at)) {
-        cout << "Submission rejected: deadline has passed."
-             << endl;
-        return;
-    }
+    Datetime effectiveDeadline =assignment.getEffectiveDeadline(studentId);
+
+    int daysLate = effectiveDeadline.startedDaysLate(at);
+            if (daysLate > 3) {
+            cout << "Submission rejected: more than 3 days late."<< endl;
+           return;
+            }
 
     this->fileReference = fileReference;
     submittedAt = at;
-    if (at.isBefore(effectiveDeadline)) {
-    state = SubmissionState::SUBMITTED;
- } else {
-    state = SubmissionState::LATE;
-}
+
+    if (daysLate == 0) {
+        state = SubmissionState::SUBMITTED;
+    } else {
+        state = SubmissionState::LATE;
+    }
 
     cout << "Submission successful." << endl;
 }
 // Resubmit work
-bool Submission::resubmit(const string& fileReference, const Datetime& at,const Assignment& assignment) {
-     if (assignment.getEffectiveDeadline(studentId).isBefore(at)) {
-        cout << "Resubmission rejected: deadline has passed."<< endl;
+bool Submission::resubmit(const string& fileReference,const Datetime& at,const Assignment& assignment) {
+    Datetime effectiveDeadline =
+        assignment.getEffectiveDeadline(studentId);
+
+    int daysLate = effectiveDeadline.startedDaysLate(at);
+
+    if (daysLate > 3) {
+        cout << "Resubmission rejected: more than 3 days late."
+             << endl;
         return false;
     }
 
     this->fileReference = fileReference;
     submittedAt = at;
-    state = SubmissionState::SUBMITTED;
+
+    if (daysLate == 0) {
+        state = SubmissionState::SUBMITTED;
+    } else {
+        state = SubmissionState::LATE;
+    }
 
     cout << "Resubmission successful." << endl;
     return true;
@@ -107,8 +118,8 @@ void Submission::mark(double mark,const string& feedback, UserId lecturerId,
 
     // Calculate the penalty if the submission was accepted as late.
     if (state == SubmissionState::LATE) {
-        int daysLate =assignment.getEffectiveDeadline(studentId).daysDifference(submittedAt);
-        finalMark = assignment.calculateLatePenalty(mark, daysLate);
+    int daysLate =assignment.getEffectiveDeadline(studentId).startedDaysLate(submittedAt);
+    finalMark =assignment.calculateLatePenalty(mark, daysLate);
     }
 
     MarkAuditEntry entry(

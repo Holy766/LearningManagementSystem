@@ -11,16 +11,21 @@ DailyPenaltyStrategy::DailyPenaltyStrategy(double dailyPenaltyRate)
     }
 }
 
-double DailyPenaltyStrategy::calculatePenalty(
-    double mark,
-    int daysLate,
-    double maximumMark
-) const {
+double DailyPenaltyStrategy::calculatePenalty(double mark,int daysLate,double maximumMark) const {
+
     if (daysLate <= 0) {
         return mark;
     }
 
-    double penalty = maximumMark * dailyPenaltyRate * daysLate;
+    if (daysLate > 3) {
+        throw std::invalid_argument(
+            "Submission exceeds the 3-day late limit."
+        );
+    }
+
+    double penalty =
+        maximumMark * dailyPenaltyRate * daysLate;
+
     double finalMark = mark - penalty;
 
     return finalMark < 0.0 ? 0.0 : finalMark;

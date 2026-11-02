@@ -38,14 +38,13 @@ static std::string formatAuditDateTime(Datetime date) {
 
     return output.str();
 }
-
 bool SQLiteMarkAuditRepository::save(const MarkAuditEntry& entry) {
     const char* sql = R"(
         INSERT INTO mark_audit (
-            id, submission_id, changed_by, changed_at,
+            submission_id, changed_by, changed_at,
             old_mark, new_mark, reason
         )
-        VALUES (?, ?, ?, ?, ?, ?, ?);
+        VALUES (?, ?, ?, ?, ?, ?);
     )";
 
     sqlite3_stmt* statement = nullptr;
@@ -56,18 +55,17 @@ bool SQLiteMarkAuditRepository::save(const MarkAuditEntry& entry) {
         throw std::runtime_error(sqlite3_errmsg(getConnection()));
     }
 
-    sqlite3_bind_int(statement, 1, entry.getId());
-    sqlite3_bind_int(statement, 2, entry.getSubmissionId());
-    sqlite3_bind_int(statement, 3, entry.getChangedBy());
+    sqlite3_bind_int(statement, 1, entry.getSubmissionId());
+    sqlite3_bind_int(statement, 2, entry.getChangedBy());
 
     std::string date = formatAuditDateTime(entry.getChangedAt());
-    sqlite3_bind_text(statement, 4, date.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 3, date.c_str(), -1, SQLITE_TRANSIENT);
 
-    sqlite3_bind_double(statement, 5, entry.getOldMark());
-    sqlite3_bind_double(statement, 6, entry.getNewMark());
+    sqlite3_bind_double(statement, 4, entry.getOldMark());
+    sqlite3_bind_double(statement, 5, entry.getNewMark());
 
     std::string reason = entry.getReason();
-    sqlite3_bind_text(statement, 7, reason.c_str(), -1, SQLITE_TRANSIENT);
+    sqlite3_bind_text(statement, 6, reason.c_str(), -1, SQLITE_TRANSIENT);
 
     int result = sqlite3_step(statement);
 
@@ -100,7 +98,6 @@ std::vector<MarkAuditEntry> SQLiteMarkAuditRepository::findAll() {
     }
 
     while (sqlite3_step(statement) == SQLITE_ROW) {
-
         AuditId id = sqlite3_column_int(statement, 0);
         SubmissionId submissionId = sqlite3_column_int(statement, 1);
         UserId changedBy = sqlite3_column_int(statement, 2);
