@@ -12,6 +12,12 @@ cmake --build build
 # Initial administrator  setup
 username:  Mokhaka
 password:  phalali09
+# all initial password 
+student:moshoti : holy07
+student: mohobela: ict123
+student: mofubelu: pass123
+lecturer:mofifi:holy123
+HoD: mafika :cs0707
 
 
 
